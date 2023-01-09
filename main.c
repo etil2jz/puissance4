@@ -78,6 +78,19 @@ void initPlateau(int plateau[][7]) {
     }
 }
 
+void placement(int plateau[][7],int bcl){
+    int a
+    printf("Choisissez la colonne ou vous souhaitez poser votre pion.\n");
+    scanf("%i",&a);
+    for (int b=6,b>0;b--){
+        if( plateau[a][b]==0){
+            if(bcl==1)plateau[a][b]=1;
+            if(bcl==2)plateau[a][b]=2;
+            break;
+        }
+    }
+}
+
 void affichagePlateau(int plateau[][7]) {
     
 }
@@ -115,9 +128,18 @@ void menu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieVsIA[]) {
 }
 
 int main() {
-    int plateau[6][7], enCoursDeJeu[1], partieVsIA[1];
+    int plateau[6][7], enCoursDeJeu=0, partieVsIA[1],int victoire=0;
     joueurs j[2]; // Déclaration des joueurs (2 max)
     initPlateau(plateau);
     clear();
-    menu(plateau, j, enCoursDeJeu, partieVsIA);
+   // menu(plateau, j, enCoursDeJeu, partieVsIA);
+   do{
+    enCoursDeJeu++;
+    if(enCoursDeJeu==3)enCoursDeJeu=1;
+   placement(plateau,enCoursDeJeu);
+   affichagePlateau(plateau);
+   }while (victoire==0);
+   
+   
+
 }
