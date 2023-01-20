@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <Windows.h>
 
 typedef struct joueurs {
     char nom[256];
@@ -141,7 +142,7 @@ void writeSauvegarde(int plateau[][7], joueurs j[], int enCoursDeJeu[], int part
     FILE * sauvegarde; // Erreur de segmentation - à corriger
     sauvegarde = fopen("sauvegarde.esiee", "w");
     for (int i = 0; i < 6; i++) {
-        for (int j = 0; i < 7; j++) {
+        for (int j = 0; j < 7; j++) {
             fprintf(sauvegarde, "%i\n", plateau[i][j]);
         }
     }
@@ -154,7 +155,7 @@ void readSauvegarde(int plateau[][7], joueurs j[], int enCoursDeJeu[], int parti
     sauvegarde = fopen("sauvegarde.esiee", "r");
     if (sauvegarde == NULL) printf("\nAucune sauvegarde détectée dans le dossier du jeu\nFermeture...");
     for (int i = 0; i < 6; i++) {
-        for (int j = 0; i < 7; j++) {
+        for (int j = 0; j < 7; j++) {
             fscanf(sauvegarde, "%i\n", &plateau[i][j]);
         }
     }
@@ -185,7 +186,7 @@ void boucleJeu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJI
             printf("\n\nSélectionnez votre colonne (1 2 3 4 5 6 7)\n> ");
             scanf("%i", &cordX);
             cordX--;
-        } while ((cordX < 0 || cordX > 6 ) || plateau[0][cordX] != 0);
+        } while ((cordX < 0 || cordX > 7 ) || plateau[0][cordX] != 0);
         cordY = 5;
         while (cordY > -1) {
             if (plateau[cordY][cordX] == 0) {
@@ -204,11 +205,7 @@ void boucleJeu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJI
         tourJoueur[0]++;
         clear();
         affichagePlateau(plateau);
-        do {
-            printf("\n\nSouhaitez-vous afficher le menu ? (1 pour oui, 2 pour non)\n> ");
-            scanf("%i", &retourmenu);
-        } while (retourmenu < 1 || retourmenu > 2);
-        if (retourmenu == 1) {
+        if (cordX == 7) {
             clear();
             couleur(94);
             printf("=========================================\n               PUISSANCE 4\n=========================================\n\n");
@@ -224,6 +221,9 @@ void boucleJeu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJI
             }
         }
     } while (win == 0);
+    if(win==1)printf("Bravo %s tu as gagné !\n",j[0].nom);
+    if(win==2)printf("Bravo %s tu as gagné !\n",j[1].nom);
+    Sleep(2000);
     clear();
 }
 
@@ -256,7 +256,7 @@ void menu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJIA[]) 
                 clear();
                 break;
         }
-    } while (rep < 1 || rep > 5);
+    } while (1);
     couleur(0);
 }
 
