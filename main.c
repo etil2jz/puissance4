@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifdef _WIN32
+    #include <windows.h>
+#endif
 
 typedef struct joueurs {
     char nom[256];
@@ -39,6 +42,12 @@ void couleur(int couleurDuTexte) {
         94 bleu
     */
     printf("\033[0;%dm", couleurDuTexte);
+}
+
+void fgets_s(char* s, int size) {
+    fgets(s, size, stdin);
+    // Enlever le saut de ligne à la fin de la chaîne
+    s[strcspn(s, "\n")] = 0;
 }
 
 int askTypePartie() {
@@ -221,33 +230,32 @@ void boucleJeu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJI
         }
         if (partieJcJIA[0] == 1 || partieJcJIA[0] == 2 && tourJoueur[0] == 1) {
             do {
-                printf("\n\nSélectionnez votre colonne (1 2 3 4 5 6 7)\n> ");
+                printf("\n\nSélectionnez votre colonne (1 2 3 4 5 6 7)\t\t[8 pour afficher le menu]\n> ");
                 scanf("%i", &cordX);
                 cordX--;
-            } while ((cordX < 0 || cordX > 6 ) || plateau[0][cordX] != 0);
-            cordY = 5;
-            while (cordY > -1) {
-                if (plateau[cordY][cordX] == 0) {
-                    if (tourJoueur[0] == 1) {
-                        plateau[cordY][cordX] = 1;
-                    } else {
-                        plateau[cordY][cordX] = 2;
+            } while ((cordX < 0 || cordX > 7 ) || plateau[0][cordX] != 0);
+            if (cordX != 7) {
+                cordY = 5;
+                while (cordY > -1) {
+                    if (plateau[cordY][cordX] == 0) {
+                        if (tourJoueur[0] == 1) {
+                            plateau[cordY][cordX] = 1;
+                        } else {
+                            plateau[cordY][cordX] = 2;
+                        }
+                        break;
                     }
-                    break;
+                    cordY--;
                 }
-                cordY--;
             }
         }
-        win = verifVictoire(plateau, tourJoueur);
-        if (win != 0) break;
-        tourJoueur[0]++;
-        clear();
-        affichagePlateau(plateau);
-        do {
-            printf("\n\nSouhaitez-vous afficher le menu ? (1 pour oui, 2 pour non)\n> ");
-            scanf("%i", &retourmenu);
-        } while (retourmenu < 1 || retourmenu > 2);
-        if (retourmenu == 1) {
+        if (cordX != 7) {
+            win = verifVictoire(plateau, tourJoueur);
+            if (win != 0) break;
+            tourJoueur[0]++;
+            clear();
+            affichagePlateau(plateau);
+        } else {
             clear();
             couleur(94);
             printf("=========================================\n               PUISSANCE 4\n=========================================\n\n");
