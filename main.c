@@ -1,19 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 typedef struct joueurs {
     char nom[256];
 }joueurs;
 
 void clear() {
-    // Clear pour Windows
     #ifdef _WIN32
-    system("cls");
+        // Clear pour Windows
+        system("cls");
+    #else
+        // Clear pour Linux
+        system("clear");
     #endif
-    // Clear pour Linux
-    #ifdef linux
-    system("clear");
+}
+
+void sleep(int seconds) {
+    #ifdef _WIN32
+        // Sleep pour Windows
+        Sleep(seconds * 1000);
+    #else
+        // Sleep pour Linux
+        struct timespec ts;
+        ts.tv_sec = seconds;
+        ts.tv_nsec = 0;
+        nanosleep(&ts, NULL);
     #endif
 }
 
@@ -36,7 +49,7 @@ int askTypePartie() {
         printf("Sélectionnez votre type de partie\n(1) JcJ\n(2) IA\n\n> ");
         scanf("%i", &rep);
 
-    } while (rep < 0 || rep > 1);
+    } while (rep < 0 || rep > 2);
     return rep;
 }
 
@@ -137,11 +150,30 @@ int verifVictoire(int plateau[][7], int joueur[]) {
     return 0; // Pas de victoire
 }
 
+void tourOrdinateur(int plateau[][7]) {
+    // Modifier la seed du pseudo-aléatoire
+    srand(time(NULL));
+
+    // Choisir une colonne au hasard entre 1 et 7 (0 et 6 pour le tableau)
+    int colonne = rand() % 7;
+
+    // Vérifier la disponibilité de la colonne et jouer le tour
+    while (plateau[0][colonne] != 0) {
+        colonne = rand() % 7;
+    }
+    for (int i = 5; i >= 0; i--) {
+        if (plateau[i][colonne] == 0) {
+            plateau[i][colonne] = 2;
+            break;
+        }
+    }
+}
+
 void writeSauvegarde(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJIA[], int tourJoueur[]) {
-    FILE * sauvegarde; // Erreur de segmentation - à corriger
+    FILE * sauvegarde;
     sauvegarde = fopen("sauvegarde.esiee", "w");
     for (int i = 0; i < 6; i++) {
-        for (int j = 0; i < 7; j++) {
+        for (int j = 0; j < 7; j++) {
             fprintf(sauvegarde, "%i\n", plateau[i][j]);
         }
     }
@@ -154,7 +186,7 @@ void readSauvegarde(int plateau[][7], joueurs j[], int enCoursDeJeu[], int parti
     sauvegarde = fopen("sauvegarde.esiee", "r");
     if (sauvegarde == NULL) printf("\nAucune sauvegarde détectée dans le dossier du jeu\nFermeture...");
     for (int i = 0; i < 6; i++) {
-        for (int j = 0; i < 7; j++) {
+        for (int j = 0; j < 7; j++) {
             fscanf(sauvegarde, "%i\n", &plateau[i][j]);
         }
     }
@@ -171,33 +203,40 @@ void boucleJeu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJI
         clear();
         couleur(33);
         affichagePlateau(plateau);
-        printf("\n\nAu tour du joueur ");
+        if (partieJcJIA[0] == 1 || partieJcJIA[0] == 2 && tourJoueur[0] == 1) printf("\n\nAu tour du joueur ");
         if (tourJoueur[0] == 1) {
             couleur(93);
             printf("%s", j[0].nom);
+        } else if (partieJcJIA[0] == 2) {
+
         } else {
             couleur(91);
             printf("%s", j[1].nom);
         }
         couleur(33);
-        printf(" !");
-        do {
-            printf("\n\nSélectionnez votre colonne (1 2 3 4 5 6 7)\n> ");
-            scanf("%i", &cordX);
-            cordX--;
-        } while ((cordX < 0 || cordX > 6 ) || plateau[0][cordX] != 0);
-        cordY = 5;
-        while (cordY > -1) {
-            if (plateau[cordY][cordX] == 0) {
-                if (tourJoueur[0] == 1) {
-                    plateau[cordY][cordX] = 1;
+        if (partieJcJIA[0] == 1 || partieJcJIA[0] == 2 && tourJoueur[0] == 1) printf(" !");
+        if (tourJoueur[0] == 2 && partieJcJIA[0] == 2) {
+            tourOrdinateur(plateau);
+            sleep(1);
+        }
+        if (partieJcJIA[0] == 1 || partieJcJIA[0] == 2 && tourJoueur[0] == 1) {
+            do {
+                printf("\n\nSélectionnez votre colonne (1 2 3 4 5 6 7)\n> ");
+                scanf("%i", &cordX);
+                cordX--;
+            } while ((cordX < 0 || cordX > 6 ) || plateau[0][cordX] != 0);
+            cordY = 5;
+            while (cordY > -1) {
+                if (plateau[cordY][cordX] == 0) {
+                    if (tourJoueur[0] == 1) {
+                        plateau[cordY][cordX] = 1;
+                    } else {
+                        plateau[cordY][cordX] = 2;
+                    }
+                    break;
                 }
-                else {
-                    plateau[cordY][cordX] = 2;
-                }
-                break;
+                cordY--;
             }
-            cordY--;
         }
         win = verifVictoire(plateau, tourJoueur);
         if (win != 0) break;
