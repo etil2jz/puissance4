@@ -151,7 +151,7 @@ int verifVictoire(int plateau[][7], int joueur[]) {
 }
 
 void tourOrdinateur(int plateau[][7]) {
-    // Modifier la seed du pseudo-aléatoire
+    // Modifier la seed du générateur pseudo-aléatoire
     srand(time(NULL));
 
     // Choisir une colonne au hasard entre 1 et 7 (0 et 6 pour le tableau)
