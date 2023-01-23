@@ -8,6 +8,10 @@
     #include <windows.h>
 #endif
 
+#define tailleCellule 100
+#define LARGEUR 700
+#define HAUTEUR 600
+
 typedef struct joueurs {
     char nom[128];
 }joueurs;
@@ -318,24 +322,38 @@ void menu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJIA[]) 
     couleur(0);
 }
 
-void drawCercle(SDL_Renderer *renderer, int x, int y) {
-    SDL_Rect rect;
-    rect.x = x - 20;
-    rect.y = y - 20;
-    rect.w = 20 * 2;
-    rect.h = 20 * 2;
-    SDL_RenderFillRect(renderer, &rect);
-}
-
-void drawPlateau(SDL_Renderer *renderer) {
-    for (int i = 0; i < 7; i++) {
-        for (int j = 0; j < 6; j++) {
-            int x = (i + 1) * (700 / (7 + 1));
-            int y = (j + 1) * (600 / (6 + 1));
-            drawCercle(renderer, x, y);
+void SDL_RenderFillCircle(SDL_Renderer *renderer, int x, int y, int r) {
+    for (int i = x - r; i <= x + r; i++) {
+        for (int j = y - r; j <= y + r; j++) {
+            int dx = x - i;
+            int dy = y - j;
+            if (dx * dx + dy * dy <= r * r) {
+                SDL_RenderDrawPoint(renderer, i, j);
+            }
         }
     }
 }
+
+void drawPlateau(SDL_Renderer *renderer, int plateau[][7]) {
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 7; j++) {
+            int x = j * tailleCellule + tailleCellule / 2;
+            int y = i * tailleCellule + tailleCellule / 2;
+            int r = tailleCellule / 2 - tailleCellule / 8;
+            if (plateau[i][j] == 0) {
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                SDL_RenderFillCircle(renderer, x, y, r);
+            } else if (plateau[i][j] == 1) {
+                SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+                SDL_RenderFillCircle(renderer, x, y, r);
+            } else if (plateau[i][j] == 2) {
+                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                SDL_RenderFillCircle(renderer, x, y, r);
+            }
+        }
+    }
+}
+
 
 void drawMenu1(SDL_Renderer *renderer, TTF_Font *font, int selected) {
     SDL_Color color = {255, 255, 255};
@@ -344,8 +362,8 @@ void drawMenu1(SDL_Renderer *renderer, TTF_Font *font, int selected) {
     SDL_Surface *surface = TTF_RenderText_Blended(font, "Nouvelle partie", selected == 0 ? selectedColor : color);
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_Rect rect;
-    rect.x = 700 / 2 - surface->w / 2;
-    rect.y = 600 / 2 - surface->h;
+    rect.x = LARGEUR / 2 - surface->w / 2;
+    rect.y = HAUTEUR / 2 - surface->h;
     rect.w = surface->w;
     rect.h = surface->h;
     SDL_RenderCopy(renderer, texture, NULL, &rect);
@@ -354,7 +372,7 @@ void drawMenu1(SDL_Renderer *renderer, TTF_Font *font, int selected) {
 
     surface = TTF_RenderText_Blended(font, "Charger une sauvegarde", selected == 1 ? selectedColor : color);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    rect.x = 700 / 2 - surface->w / 2;
+    rect.x = LARGEUR / 2 - surface->w / 2;
     rect.y += surface->h + 20;
     rect.w = surface->w;
     rect.h = surface->h;
@@ -364,7 +382,33 @@ void drawMenu1(SDL_Renderer *renderer, TTF_Font *font, int selected) {
 
     surface = TTF_RenderText_Blended(font, "Quitter le jeu", selected == 2 ? selectedColor : color);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    rect.x = 700 / 2 - surface->w / 2;
+    rect.x = LARGEUR / 2 - surface->w / 2;
+    rect.y += surface->h + 20;
+    rect.w = surface->w;
+    rect.h = surface->h;
+    SDL_RenderCopy(renderer, texture, NULL, &rect);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+}
+
+void drawMenu2(SDL_Renderer *renderer, TTF_Font *font, int selected) {
+    SDL_Color color = {255, 255, 255};
+    SDL_Color selectedColor = {0, 255, 0};
+
+    SDL_Surface *surface = TTF_RenderText_Blended(font, "Mode Joueur vs. Joueur", selected == 0 ? selectedColor : color);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Rect rect;
+    rect.x = LARGEUR / 2 - surface->w / 2;
+    rect.y = HAUTEUR / 2 - surface->h;
+    rect.w = surface->w;
+    rect.h = surface->h;
+    SDL_RenderCopy(renderer, texture, NULL, &rect);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+
+    surface = TTF_RenderText_Blended(font, "Mode IA", selected == 1 ? selectedColor : color);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    rect.x = LARGEUR / 2 - surface->w / 2;
     rect.y += surface->h + 20;
     rect.w = surface->w;
     rect.h = surface->h;
@@ -376,10 +420,10 @@ void drawMenu1(SDL_Renderer *renderer, TTF_Font *font, int selected) {
 int main(int argc, char *argv[]) {
     int plateau[6][7], enCoursDeJeu[1], partieJcJIA[1];
     joueurs j[2]; // Déclaration des joueurs (2 max)
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+    SDL_Init(SDL_INIT_VIDEO/* | SDL_INIT_TIMER*/);
     TTF_Init();
 
-    SDL_Window *window = SDL_CreateWindow("Puissance 4", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 700, 600, SDL_WINDOW_SHOWN);
+    SDL_Window *window = SDL_CreateWindow("Puissance 4", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, LARGEUR, HAUTEUR, SDL_WINDOW_SHOWN);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     TTF_Font *font = TTF_OpenFont("dogicapixel.ttf", 24);
     //menu(plateau, j, enCoursDeJeu, partieJcJIA);
@@ -399,6 +443,7 @@ int main(int argc, char *argv[]) {
                                     break;
                     case SDLK_RETURN: switch (selected) {
                                           case 0: menu = 0;
+                                                  initPlateau(plateau);
                                                   break;
                                           case 1: // Charger une sauvegarde
                                                   break;
@@ -413,11 +458,11 @@ int main(int argc, char *argv[]) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        if (menu) {
+        if (menu == 1) {
             drawMenu1(renderer, font, selected);
         } else {
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-            drawPlateau(renderer);
+            drawPlateau(renderer, plateau);
         }
 
         SDL_RenderPresent(renderer);
