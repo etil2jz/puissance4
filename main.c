@@ -164,7 +164,8 @@ void readSauvegarde(int plateau[][7], joueurs j[], int enCoursDeJeu[], int parti
 }
 
 void boucleJeu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJIA[], int tourJoueur[]) {
-    int retourmenu = 0, win = 0, cordX, cordY;
+    int retourmenu = 0, win = 0, cordX, cordY,test;
+    char dassaut[1],dattak[0];
     tourJoueur[0] = 1;
     do {
         if (tourJoueur[0] == 3) tourJoueur[0] = 1;
@@ -184,8 +185,19 @@ void boucleJeu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJI
         printf(" !");
         do {
             printf("\n\nSélectionnez votre colonne (1 2 3 4 5 6 7)\n> ");
-            scanf("%i", &cordX);
-            cordX--;
+            fflush(stdin);
+            scanf("%c",&dassaut[0]);
+            if(dassaut[0]=='1'||dassaut[0]=='2'||dassaut[0]=='3'||dassaut[0]=='4'||dassaut[0]=='5'||dassaut[0]=='6'||dassaut[0]=='7'||dassaut[0]=='8')
+            {
+                dattak[0]=dassaut[0];
+                test=atoi(dattak);
+                printf("%i",test);
+                if(test==0) cordX=999;
+                if(test!=0) cordX=test; 
+                printf("%i\n",cordX);         
+                cordX--;
+            }
+            else cordX=999; //Force la boucle a se renouveler            
         } while ((cordX < 0 || cordX > 7 ) || plateau[0][cordX] != 0);
         cordY = 5;
         while (cordY > -1) {
