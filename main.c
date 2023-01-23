@@ -7,7 +7,7 @@
 #endif
 
 typedef struct joueurs {
-    char nom[256];
+    char nom[128];
 }joueurs;
 
 void clear() {
@@ -44,12 +44,6 @@ void couleur(int couleurDuTexte) {
     printf("\033[0;%dm", couleurDuTexte);
 }
 
-void fgets_s(char* s, int size) {
-    fgets(s, size, stdin);
-    // Enlever le saut de ligne à la fin de la chaîne
-    s[strcspn(s, "\n")] = 0;
-}
-
 int askTypePartie() {
     // Définie si la partie est en mode JcJ ou IA
     clear();
@@ -68,24 +62,25 @@ void nomJoueurs(int partieJcJIA[], joueurs j[]) {
         printf("Nom de l'équipe ");
         couleur(93);
         printf("jaune : ");
-        while ((getchar()) != '\n');
+        //fgets // il faut trouver un moyen de faire fonctionner fgets, qu'importe la situation
         fgets(j[0].nom, sizeof(j[0].nom), stdin);
-        j[0].nom[strcspn(j[0].nom, "\n")] = 0;
+        fgets(j[0].nom, sizeof(j[0].nom), stdin);
+        strtok(j[0].nom, "\n");
         couleur(33);
         printf("\nNom de l'équipe ");
         couleur(91);
         printf("rouge : ");
+        //fgets // il faut trouver un moyen de faire fonctionner fgets, qu'importe la situation
         fgets(j[1].nom, sizeof(j[1].nom), stdin);
-        j[1].nom[strcspn(j[1].nom, "\n")] = 0;
-        couleur(33);
+        strtok(j[1].nom, "\n");
     } else {
         printf("Nom de l'équipe ");
         couleur(93);
         printf("jaune : ");
-        while ((getchar()) != '\n');
+        //fgets // il faut trouver un moyen de faire fonctionner fgets, qu'importe la situation
         fgets(j[0].nom, sizeof(j[0].nom), stdin);
-        j[0].nom[strcspn(j[0].nom, "\n")] = 0;
-        couleur(33);
+        fgets(j[0].nom, sizeof(j[0].nom), stdin);
+        strtok(j[0].nom, "\n");
     }
 }
 
@@ -193,7 +188,10 @@ void writeSauvegarde(int plateau[][7], joueurs j[], int enCoursDeJeu[], int part
 void readSauvegarde(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJIA[], int tourJoueur[]) {
     FILE * sauvegarde = NULL;
     sauvegarde = fopen("sauvegarde.esiee", "r");
-    if (sauvegarde == NULL) printf("\nAucune sauvegarde détectée dans le dossier du jeu\nFermeture...");
+    if (sauvegarde == NULL) {
+        printf("\nAucune sauvegarde détectée dans le dossier du jeu\nFermeture...");
+        exit(0);
+    }
     for (int i = 0; i < 6; i++) {
         for (int j = 0; j < 7; j++) {
             fscanf(sauvegarde, "%i\n", &plateau[i][j]);
@@ -208,7 +206,6 @@ void boucleJeu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJI
     tourJoueur[0] = 1;
     do {
         if (tourJoueur[0] == 3) tourJoueur[0] = 1;
-        while ((getchar()) != '\n');
         clear();
         couleur(33);
         affichagePlateau(plateau);
@@ -266,18 +263,29 @@ void boucleJeu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJI
                 case 1: break;
                 case 2: writeSauvegarde(plateau, j, enCoursDeJeu, partieJcJIA, tourJoueur);
                         break;
-                case 3: exit(0);
+                case 3: clear();
+                        exit(0);
                         break;
             }
         }
     } while (win == 0);
     clear();
+    affichagePlateau(plateau);
+    if (win == 1) {
+        printf("\n\nFélicitations %s, tu es le plus fort !", j[0].nom);
+    } else if (win == 2 && partieJcJIA[0] == 1) {
+        printf("\n\nFélicitations %s, tu es le plus fort !", j[1].nom);
+    } else {
+        printf("\n\nTu t'es fait battre par une IA à base de fonctions rand() ...");
+    }
+    sleep(5);
+    clear();
 }
 
 void menu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJIA[]) {
     int rep, tourJoueur[1];
-    enCoursDeJeu[0] = 0;
     do {
+        enCoursDeJeu[0] = 0;
         couleur(94);
         printf("=========================================\n               PUISSANCE 4\n=========================================\n\n");
         couleur(33);
@@ -297,13 +305,14 @@ void menu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJIA[]) 
                 boucleJeu(plateau, j, enCoursDeJeu, partieJcJIA, tourJoueur);
                 break;
             case 3:
+                clear();
                 exit(0);
                 break;
             default:
                 clear();
                 break;
         }
-    } while (rep < 1 || rep > 5);
+    } while (rep < 1 || rep > 5 || enCoursDeJeu[0] == 1);
     couleur(0);
 }
 
@@ -312,4 +321,5 @@ int main() {
     joueurs j[2]; // Déclaration des joueurs (2 max)
     clear();
     menu(plateau, j, enCoursDeJeu, partieJcJIA);
+    return 0;
 }
