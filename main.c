@@ -189,8 +189,9 @@ void readSauvegarde(int plateau[][7], joueurs j[], int enCoursDeJeu[], int parti
     FILE * sauvegarde = NULL;
     sauvegarde = fopen("sauvegarde.esiee", "r");
     if (sauvegarde == NULL) {
-        printf("\nAucune sauvegarde détectée dans le dossier du jeu\nFermeture...");
-        exit(0);
+        printf("\nAucune sauvegarde détectée dans le dossier du jeu\nFermeture...\n");
+        sleep(4);
+        return;
     }
     for (int i = 0; i < 6; i++) {
         for (int j = 0; j < 7; j++) {
@@ -271,14 +272,16 @@ void boucleJeu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJI
     } while (win == 0);
     clear();
     affichagePlateau(plateau);
-    if (win == 1) {
-        printf("\n\nFélicitations %s, tu es le plus fort !", j[0].nom);
-    } else if (win == 2 && partieJcJIA[0] == 1) {
-        printf("\n\nFélicitations %s, tu es le plus fort !", j[1].nom);
-    } else {
-        printf("\n\nTu t'es fait battre par une IA à base de fonctions rand() ...");
+    switch (win) {
+        case 1: printf("\n\nFélicitations %s, tu es le plus fort !\n\n", j[0].nom);
+                sleep(4);
+                break;
+        case 2: if (partieJcJIA[0] == 1) printf("\n\nFélicitations %s, tu es le plus fort !\n\n", j[1].nom); sleep(4);
+                break;
+        default: printf("\n\nTu t'es fait battre par une IA à base de fonctions rand() ...\n\n");
+                 sleep(4);
+                 break;
     }
-    sleep(5);
     clear();
 }
 
@@ -298,10 +301,11 @@ void menu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJIA[]) 
                 partieJcJIA[0] = askTypePartie();
                 nomJoueurs(partieJcJIA, j);
                 enCoursDeJeu[0] = 1;
-                boucleJeu(plateau,  j, enCoursDeJeu, partieJcJIA, tourJoueur);
+                boucleJeu(plateau, j, enCoursDeJeu, partieJcJIA, tourJoueur);
                 break;
             case 2:
                 readSauvegarde(plateau, j, enCoursDeJeu, partieJcJIA, tourJoueur);
+                if (enCoursDeJeu[0] == 0) break;
                 boucleJeu(plateau, j, enCoursDeJeu, partieJcJIA, tourJoueur);
                 break;
             case 3:
