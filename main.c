@@ -290,7 +290,7 @@ void menu(int plateau[][7], joueurs j[], int enCoursDeJeu[], int partieJcJIA[]) 
     do {
         enCoursDeJeu[0] = 0;
         couleur(94);
-        printf("=========================================\n               PUISSANCE 4\n=========================================\n\n");
+        printf("=======================\n      PUISSANCE 4\n=======================\n\n");
         couleur(33);
         printf("1. Nouvelle partie\n2. Charger une partie\n3. Quitter le jeu\n");
         printf("\n> ");
